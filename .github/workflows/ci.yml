@@ -26,7 +26,7 @@ jobs:
       JWT_SECRET: ci-only-secret-that-is-long-enough-for-hs256-signing
       CLIENT_ORIGIN: http://localhost:4200
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -97,7 +97,7 @@ jobs:
     env:
       E2E_MONGO_URI: mongodb://127.0.0.1:27017/bizora_pilot_e2e?directConnection=true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
