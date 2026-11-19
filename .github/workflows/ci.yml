@@ -17,7 +17,8 @@ jobs:
   backend:
     name: API tests + Postman collection
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # The suite hashes many passwords (bcrypt, 12 rounds) and takes about 15 minutes on its own.
+    timeout-minutes: 30
     env:
       # Sales use transactions, so even CI needs a replica set.
       TEST_MONGO_URI: mongodb://127.0.0.1:27017/bizora_pilot_test?directConnection=true

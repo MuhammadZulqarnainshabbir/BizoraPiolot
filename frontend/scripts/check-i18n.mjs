@@ -29,7 +29,8 @@ const ALLOWED_LITERALS = new Set(['Bizora', 'Pilot', 'Bizora Pilot', 'SAM001', '
 
 // The platform console (Bizora staff) is English-only by design.
 const isPlatformFile = f => /[\\/]platform-admin[\\/]|[\\/]services[\\/]platform[\\/]|platformAdmin|platformAuth|platformPermissions|requestMetrics|entitlements\.js$|Platform(Admin|AuditLog|Setting)\.js$|SubscriptionPlan\.js$|ShopSubscription\.js$|FeatureOverride\.js$|config[\\/]features\.js$/.test(f) && !f.endsWith('shopStatus.js');
-for (const file of walk(appSrc).filter(f => f.endsWith('.ts') && !f.endsWith('ur.ts') && !isPlatformFile(f))) {
+// Spec files hold test fixtures (server messages, product names), not interface text.
+for (const file of walk(appSrc).filter(f => f.endsWith('.ts') && !f.endsWith('ur.ts') && !f.endsWith('.spec.ts') && !isPlatformFile(f))) {
   const source = readFileSync(file, 'utf8');
   const where = relative(frontend, file);
   for (const re of [

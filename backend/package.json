@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "test": "node --test --test-concurrency=1 test/",
+    "test": "node --test --test-concurrency=1 \"test/*.test.js\"",
     "migrate:inventory": "node scripts/migrate-serialized-inventory.js",
     "platform-admin:create": "node scripts/create-platform-admin.js"
   },
