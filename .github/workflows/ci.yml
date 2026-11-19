@@ -33,7 +33,7 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - name: Start MongoDB (replica set)
-        uses: supercharge/mongodb-github-action@1.12.0
+        uses: supercharge/mongodb-github-action@1.12.1
         with:
           mongodb-version: '8.0'
           mongodb-replica-set: rs0
@@ -106,7 +106,7 @@ jobs:
             backend/package-lock.json
             frontend/package-lock.json
       - name: Start MongoDB (replica set)
-        uses: supercharge/mongodb-github-action@1.12.0
+        uses: supercharge/mongodb-github-action@1.12.1
         with:
           mongodb-version: '8.0'
           mongodb-replica-set: rs0
