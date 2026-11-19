@@ -60,7 +60,7 @@ jobs:
         run: cat api.log || true
 
   frontend:
-    name: Web app: translations, unit tests, build
+    name: "Web app: translations, unit tests, build"
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
