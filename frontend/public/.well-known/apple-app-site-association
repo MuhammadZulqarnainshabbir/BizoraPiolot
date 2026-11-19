@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["TEAMID.com.bizora.pilot"],
+        "components": [
+          { "/": "/reset-password", "comment": "Password reset link opens the mobile app's Reset Password screen" },
+          { "/": "/*/*/employee/login", "comment": "Employee login link opens the mobile app's Employee Login screen" }
+        ]
+      }
+    ]
+  }
+}

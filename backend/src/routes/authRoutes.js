@@ -1,0 +1,14 @@
+import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
+import { forgotPassword, login, register, resetPassword, me, refresh, updateShopSettings } from '../controllers/authController.js';
+import { requireAuth } from '../middleware/auth.js';
+const router = Router();
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: 'draft-7', legacyHeaders: false, skip: () => process.env.NODE_ENV === 'test', message: { message: 'Too many requests, please try again later' } });
+router.post('/register-shop', limiter, register);
+router.post('/login', limiter, login);
+router.post('/forgot-password', limiter, forgotPassword);
+router.post('/reset-password', limiter, resetPassword);
+router.get('/me', requireAuth, me);
+router.post('/refresh', requireAuth, refresh);
+router.patch('/shop-settings', requireAuth, updateShopSettings);
+export default router;

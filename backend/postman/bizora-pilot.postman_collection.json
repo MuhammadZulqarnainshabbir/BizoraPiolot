@@ -1,0 +1,2550 @@
+{
+ "info": {
+  "name": "Bizora Pilot API",
+  "description": "Inventory, sales and installments. Run the folders in order (Collection Runner): each request saves the IDs the next ones need. Uses a fresh shop each run, so it can be repeated. Set baseUrl to your API (default http://localhost:3000/api/v1).",
+  "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+ },
+ "variable": [
+  {
+   "key": "baseUrl",
+   "value": "http://localhost:3000/api/v1"
+  },
+  {
+   "key": "run",
+   "value": ""
+  },
+  {
+   "key": "ownerToken",
+   "value": ""
+  },
+  {
+   "key": "shopId",
+   "value": ""
+  },
+  {
+   "key": "employeeCode",
+   "value": ""
+  },
+  {
+   "key": "employeeObjectId",
+   "value": ""
+  },
+  {
+   "key": "employeeTempToken",
+   "value": ""
+  },
+  {
+   "key": "employeeToken",
+   "value": ""
+  },
+  {
+   "key": "serial1",
+   "value": ""
+  },
+  {
+   "key": "serial2",
+   "value": ""
+  },
+  {
+   "key": "unitId",
+   "value": ""
+  },
+  {
+   "key": "unitId2",
+   "value": ""
+  },
+  {
+   "key": "unitId3",
+   "value": ""
+  },
+  {
+   "key": "saleId",
+   "value": ""
+  },
+  {
+   "key": "installmentSaleId",
+   "value": ""
+  },
+  {
+   "key": "agreementId",
+   "value": ""
+  },
+  {
+   "key": "otherShopToken",
+   "value": ""
+  },
+  {
+   "key": "managerToken",
+   "value": ""
+  }
+ ],
+ "item": [
+  {
+   "name": "0. Setup",
+   "description": "Creates a shop, logs in the owner, creates an employee and signs them in.",
+   "item": [
+    {
+     "name": "Register shop",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/auth/register-shop",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "auth",
+        "register-shop"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"shopName\": \"Postman Shop\",\n  \"ownerName\": \"Owner\",\n  \"email\": \"owner+{{run}}@example.com\",\n  \"phone\": \"+92 300 0000000\",\n  \"address\": \"Lahore\",\n  \"password\": \"OwnerPass123\",\n  \"confirmPassword\": \"OwnerPass123\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "prerequest",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.collectionVariables.set('run', Date.now().toString(36));",
+         "pm.collectionVariables.set('serial1', 'SAM-' + pm.collectionVariables.get('run') + '-001');",
+         "pm.collectionVariables.set('serial2', 'SAM-' + pm.collectionVariables.get('run') + '-002');"
+        ]
+       }
+      },
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 201', () => pm.response.to.have.status(201));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Owner login",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/auth/login",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "auth",
+        "login"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"email\": \"owner+{{run}}@example.com\",\n  \"password\": \"OwnerPass123\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));",
+         "pm.collectionVariables.set('ownerToken', pm.response.json().token);",
+         "pm.collectionVariables.set('shopId', pm.response.json().shop.id);",
+         "pm.test('owner permissions include sales.viewAll', () => pm.expect(pm.response.json().permissions).to.include('sales.viewAll'));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Owner creates employee",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/employees",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "employees"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"name\": \"Ayesha\",\n  \"email\": \"ayesha+{{run}}@example.com\",\n  \"role\": \"Sales\",\n  \"password\": \"TempPass99\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 201', () => pm.response.to.have.status(201));",
+         "pm.collectionVariables.set('employeeCode', pm.response.json().employee.employeeId);",
+         "pm.collectionVariables.set('employeeObjectId', pm.response.json().employee._id);"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Employee login (temporary password)",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/employee/login",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "employee",
+        "login"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"shopId\": \"{{shopId}}\",\n  \"employeeId\": \"{{employeeCode}}\",\n  \"password\": \"TempPass99\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));",
+         "pm.collectionVariables.set('employeeTempToken', pm.response.json().token);"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Employee changes password",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{employeeTempToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/employee/change-password",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "employee",
+        "change-password"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"currentPassword\": \"TempPass99\",\n  \"password\": \"NewPass123\",\n  \"confirmPassword\": \"NewPass123\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));",
+         "pm.collectionVariables.set('employeeToken', pm.response.json().token);"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "1. Inventory",
+   "item": [
+    {
+     "name": "Owner adds 2 units (serial numbers required)",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/products",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "products"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"product\": {\n    \"name\": \"Samsung Galaxy S25\",\n    \"brand\": \"Samsung\",\n    \"model\": \"Galaxy S25\",\n    \"category\": \"LED TV & Audio\",\n    \"subCategory\": \"Smart LED TVs\"\n  },\n  \"serialNumbers\": [\n    \"{{serial1}}\",\n    \"{{serial2}}\"\n  ],\n  \"purchasePrice\": 200000,\n  \"sellingPrice\": 250000,\n  \"supplier\": {\n    \"name\": \"Samsung Pakistan\"\n  }\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 201', () => pm.response.to.have.status(201));",
+         "pm.collectionVariables.set('unitId', pm.response.json().units[0]._id);",
+         "pm.collectionVariables.set('unitId2', pm.response.json().units[1]._id);",
+         "pm.test('2 units, AVAILABLE', () => { const u = pm.response.json().units; pm.expect(u.length).to.eql(2); pm.expect(u[0].status).to.eql('AVAILABLE'); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Rejected: no serial number",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/products",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "products"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"product\": {\n    \"name\": \"Samsung Galaxy S25\",\n    \"brand\": \"Samsung\",\n    \"model\": \"Galaxy S25\",\n    \"category\": \"LED TV & Audio\",\n    \"subCategory\": \"Smart LED TVs\"\n  },\n  \"serialNumbers\": [],\n  \"purchasePrice\": 1,\n  \"sellingPrice\": 1\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 400', () => pm.response.to.have.status(400));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Rejected: duplicate serial (case and spaces ignored)",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/products",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "products"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"product\": {\n    \"name\": \"Samsung Galaxy S25\",\n    \"brand\": \"Samsung\",\n    \"model\": \"Galaxy S25\",\n    \"category\": \"LED TV & Audio\",\n    \"subCategory\": \"Smart LED TVs\"\n  },\n  \"serialNumbers\": [\n    \"  {{serial1}}  \"\n  ],\n  \"purchasePrice\": 1,\n  \"sellingPrice\": 1\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 409', () => pm.response.to.have.status(409));",
+         "pm.test('code DUPLICATE_SERIAL', () => pm.expect(pm.response.json().code).to.eql('DUPLICATE_SERIAL'));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Employee adds a unit",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{employeeToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/products",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "products"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"product\": {\n    \"name\": \"Samsung Galaxy S25\",\n    \"brand\": \"Samsung\",\n    \"model\": \"Galaxy S25\",\n    \"category\": \"LED TV & Audio\",\n    \"subCategory\": \"Smart LED TVs\"\n  },\n  \"serialNumbers\": [\n    \"EMP-{{run}}-003\"\n  ],\n  \"purchasePrice\": 200000,\n  \"sellingPrice\": 250000\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 201', () => pm.response.to.have.status(201));",
+         "pm.collectionVariables.set('unitId3', pm.response.json().units[0]._id);",
+         "pm.test('added by the employee', () => pm.expect(pm.response.json().units[0].addedBy.type).to.eql('employee'));",
+         "pm.test('no cost shown to employee', () => pm.expect(pm.response.json().units[0]).to.not.have.property('purchasePriceCents'));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "List inventory units (owner)",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/products/units?status=AVAILABLE&sort=createdAt&order=desc",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "products",
+        "units"
+       ],
+       "query": [
+        {
+         "key": "status",
+         "value": "AVAILABLE"
+        },
+        {
+         "key": "sort",
+         "value": "createdAt"
+        },
+        {
+         "key": "order",
+         "value": "desc"
+        }
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));",
+         "pm.test('3 available', () => pm.expect(pm.response.json().total).to.eql(3));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Find unit by serial (employee)",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{employeeToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/products/units/by-serial/{{serial1}}",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "products",
+        "units",
+        "by-serial",
+        "{{serial1}}"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Catalog products with stock counts",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/products",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "products"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Stock summary (owner sees values)",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/products/stock-summary",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "products",
+        "stock-summary"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));",
+         "pm.test('purchase value visible', () => pm.expect(pm.response.json().summary).to.have.property('availablePurchaseValueCents'));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Forbidden: employee deletes a unit",
+     "request": {
+      "method": "DELETE",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{employeeToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/products/units/{{unitId3}}",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "products",
+        "units",
+        "{{unitId3}}"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"reason\": \"test\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 403', () => pm.response.to.have.status(403));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Forbidden: employee changes purchase price",
+     "request": {
+      "method": "PATCH",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{employeeToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/products/units/{{unitId3}}",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "products",
+        "units",
+        "{{unitId3}}"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"purchasePrice\": 1\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 403', () => pm.response.to.have.status(403));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Owner corrects a unit (audit-logged)",
+     "request": {
+      "method": "PATCH",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/products/units/{{unitId3}}",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "products",
+        "units",
+        "{{unitId3}}"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"sellingPrice\": 245000,\n  \"reason\": \"Price match\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "2. Sales",
+   "item": [
+    {
+     "name": "Employee sells a unit at full price",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{employeeToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/sales/full-price",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "sales",
+        "full-price"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"unitId\": \"{{unitId}}\",\n  \"salePrice\": 240000,\n  \"paymentMethod\": \"CASH\",\n  \"customer\": {\n    \"name\": \"Ali\",\n    \"phone\": \"+92 321 0000000\"\n  }\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 201', () => pm.response.to.have.status(201));",
+         "pm.collectionVariables.set('saleId', pm.response.json().sale._id);",
+         "pm.test('serial kept on the sale', () => pm.expect(pm.response.json().sale.item.serialNumber).to.eql(pm.collectionVariables.get('serial1')));",
+         "pm.test('discount computed by server', () => pm.expect(pm.response.json().sale.discountCents).to.eql(1000000));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Rejected: same unit sold again",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/sales/full-price",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "sales",
+        "full-price"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"unitId\": \"{{unitId}}\",\n  \"salePrice\": 240000\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 409', () => pm.response.to.have.status(409));",
+         "pm.test('code ALREADY_SOLD', () => pm.expect(pm.response.json().code).to.eql('ALREADY_SOLD'));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Employee sells a unit on installment",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{employeeToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/sales/installment",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "sales",
+        "installment"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"unitId\": \"{{unitId2}}\",\n  \"totalPrice\": 1200,\n  \"downPayment\": 200,\n  \"installmentCount\": 5,\n  \"frequency\": \"MONTHLY\",\n  \"paymentMethod\": \"CASH\",\n  \"customer\": {\n    \"name\": \"Kashif\",\n    \"phone\": \"+92 333 1112223\",\n    \"address\": \"Model Town, Lahore\"\n  },\n  \"notes\": \"Includes case\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 201', () => pm.response.to.have.status(201));",
+         "pm.collectionVariables.set('installmentSaleId', pm.response.json().sale._id);",
+         "pm.collectionVariables.set('agreementId', pm.response.json().agreement._id);",
+         "pm.test('5 × Rs 200 schedule', () => pm.expect(pm.response.json().agreement.schedule.map(e => e.amountCents)).to.eql([20000,20000,20000,20000,20000]));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Owner: all full-price sales",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/sales/full-price",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "sales",
+        "full-price"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Owner: filter full-price sales by employee",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/sales/full-price?soldBy={{employeeObjectId}}",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "sales",
+        "full-price"
+       ],
+       "query": [
+        {
+         "key": "soldBy",
+         "value": "{{employeeObjectId}}"
+        }
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Owner: installment agreements (ACTIVE)",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/sales/installment?status=ACTIVE",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "sales",
+        "installment"
+       ],
+       "query": [
+        {
+         "key": "status",
+         "value": "ACTIVE"
+        }
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Employee: my sales",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{employeeToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/sales/my-sales",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "sales",
+        "my-sales"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));",
+         "pm.test('both of my sales', () => pm.expect(pm.response.json().total).to.eql(2));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Sale details",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/sales/{{installmentSaleId}}",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "sales",
+        "{{installmentSaleId}}"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "3. Installments",
+   "item": [
+    {
+     "name": "Forbidden: employee records a payment",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{employeeToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/installments/{{agreementId}}/payments",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "installments",
+        "{{agreementId}}",
+        "payments"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"amount\": 200\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 403', () => pm.response.to.have.status(403));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Owner records a payment",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/installments/{{agreementId}}/payments",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "installments",
+        "{{agreementId}}",
+        "payments"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"amount\": 200,\n  \"method\": \"BANK_TRANSFER\",\n  \"note\": \"December\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 201', () => pm.response.to.have.status(201));",
+         "pm.test('balance Rs 800', () => pm.expect(pm.response.json().agreement.balanceCents).to.eql(80000));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Rejected: overpayment",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/installments/{{agreementId}}/payments",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "installments",
+        "{{agreementId}}",
+        "payments"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"amount\": 5000\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 409', () => pm.response.to.have.status(409));",
+         "pm.test('code OVERPAYMENT', () => pm.expect(pm.response.json().code).to.eql('OVERPAYMENT'));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Agreement details",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{employeeToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/installments/{{agreementId}}",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "installments",
+        "{{agreementId}}"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Payment history",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/installments/{{agreementId}}/payments",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "installments",
+        "{{agreementId}}",
+        "payments"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));",
+         "pm.test('down payment + 1 installment', () => pm.expect(pm.response.json().items.length).to.eql(2));"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "4. Dashboards",
+   "item": [
+    {
+     "name": "Partner summary",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/dashboard/partner/summary",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "dashboard",
+        "partner",
+        "summary"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));",
+         "pm.test('collected = full price + down + installments', () => { const c = pm.response.json().summary.collected; pm.expect(c.totalCents).to.eql(c.fullPriceCents + c.downPaymentsCents + c.installmentPaymentsCents); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Partner full-price stats",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/dashboard/partner/full-price-sales",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "dashboard",
+        "partner",
+        "full-price-sales"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Partner installment stats",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/dashboard/partner/installment-sales",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "dashboard",
+        "partner",
+        "installment-sales"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Partner employee performance",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/dashboard/partner/employees",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "dashboard",
+        "partner",
+        "employees"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Partner inventory table",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/dashboard/partner/inventory?sort=createdAt&order=desc&limit=20",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "dashboard",
+        "partner",
+        "inventory"
+       ],
+       "query": [
+        {
+         "key": "sort",
+         "value": "createdAt"
+        },
+        {
+         "key": "order",
+         "value": "desc"
+        },
+        {
+         "key": "limit",
+         "value": "20"
+        }
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Employee summary",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{employeeToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/dashboard/employee/summary",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "dashboard",
+        "employee",
+        "summary"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Forbidden: employee opens partner dashboard",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{employeeToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/dashboard/partner/summary",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "dashboard",
+        "partner",
+        "summary"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 403', () => pm.response.to.have.status(403));"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "5. Shop isolation",
+   "item": [
+    {
+     "name": "Register a second shop",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/auth/register-shop",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "auth",
+        "register-shop"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"shopName\": \"Other Shop\",\n  \"ownerName\": \"Other\",\n  \"email\": \"other+{{run}}@example.com\",\n  \"phone\": \"1\",\n  \"address\": \"Karachi\",\n  \"password\": \"OwnerPass123\",\n  \"confirmPassword\": \"OwnerPass123\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 201', () => pm.response.to.have.status(201));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Second shop logs in",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/auth/login",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "auth",
+        "login"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"email\": \"other+{{run}}@example.com\",\n  \"password\": \"OwnerPass123\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));",
+         "pm.collectionVariables.set('otherShopToken', pm.response.json().token);"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Other shop cannot read our unit",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{otherShopToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/products/units/{{unitId3}}",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "products",
+        "units",
+        "{{unitId3}}"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 404', () => pm.response.to.have.status(404));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Other shop cannot read our sale",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{otherShopToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/sales/{{saleId}}",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "sales",
+        "{{saleId}}"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 404', () => pm.response.to.have.status(404));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Other shop cannot sell our unit",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{otherShopToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/sales/full-price",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "sales",
+        "full-price"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"unitId\": \"{{unitId3}}\",\n  \"salePrice\": 1\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 404', () => pm.response.to.have.status(404));"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "6. Corrections and export (owner)",
+   "item": [
+    {
+     "name": "Forbidden: employee refunds a sale",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{employeeToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/sales/{{saleId}}/refund",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "sales",
+        "{{saleId}}",
+        "refund"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"reason\": \"test\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 403', () => pm.response.to.have.status(403));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Owner refunds a sale (reason required, audit-logged)",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/sales/{{saleId}}/refund",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "sales",
+        "{{saleId}}",
+        "refund"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"reason\": \"Customer returned the phone\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));",
+         "pm.test('REFUNDED', () => pm.expect(pm.response.json().sale.status).to.eql('REFUNDED'));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Export full-price sales (CSV)",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/sales/full-price/export",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "sales",
+        "full-price",
+        "export"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));",
+         "pm.test('CSV', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('text/csv'));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Export installment agreements (CSV)",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/sales/installment/export",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "sales",
+        "installment",
+        "export"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "7. Managers (owner)",
+   "item": [
+    {
+     "name": "Owner promotes the employee to manager",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/employees/{{employeeObjectId}}/promote-manager",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "employees",
+        "{{employeeObjectId}}",
+        "promote-manager"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"reason\": \"Runs the counter\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));",
+         "pm.test('manager role with operational defaults', () => { const b = pm.response.json(); pm.expect(b.employee.accessRole).to.eql('manager'); pm.expect(b.permissions.effective).to.include('sales.viewAll'); pm.expect(b.permissions.effective).to.not.include('inventory.viewCost'); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Manager logs in (same staff login)",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/employee/login",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "employee",
+        "login"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"shopId\": \"{{shopId}}\",\n  \"employeeId\": \"{{employeeCode}}\",\n  \"password\": \"NewPass123\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));",
+         "pm.test('manager role', () => pm.expect(pm.response.json().employee.accessRole).to.eql('manager'));",
+         "pm.collectionVariables.set('managerToken', pm.response.json().token);"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Manager sees every sale in the shop",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{managerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/sales",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "sales"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Manager sees the team",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{managerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/employees",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "employees"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));",
+         "pm.test('no permission settings for managers', () => pm.expect(pm.response.json().employees[0].permissionOverrides).to.be.undefined);"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Manager cannot record an installment payment by default",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{managerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/installments/{{agreementId}}/payments",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "installments",
+        "{{agreementId}}",
+        "payments"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"amount\": 1\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 403', () => pm.response.to.have.status(403));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Manager cannot change permissions (own or others)",
+     "request": {
+      "method": "PATCH",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{managerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/employees/{{employeeObjectId}}/permissions",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "employees",
+        "{{employeeObjectId}}",
+        "permissions"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"permissionOverrides\": {\n    \"allow\": [\n      \"inventory.viewCost\"\n    ],\n    \"deny\": []\n  }\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 403', () => pm.response.to.have.status(403));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Owner grants installment collection to the manager",
+     "request": {
+      "method": "PATCH",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/employees/{{employeeObjectId}}/permissions",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "employees",
+        "{{employeeObjectId}}",
+        "permissions"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"permissionOverrides\": {\n    \"allow\": [\n      \"installments.recordPayment\"\n    ],\n    \"deny\": []\n  },\n  \"reason\": \"Collects installments\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));",
+         "pm.test('effective permissions include the grant', () => pm.expect(pm.response.json().permissions.effective).to.include('installments.recordPayment'));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Owner reads the permission picture and history",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/employees/{{employeeObjectId}}/permissions",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "employees",
+        "{{employeeObjectId}}",
+        "permissions"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));",
+         "pm.test('history has the grant and the promotion', () => { const h = pm.response.json().history.map(x => x.action); pm.expect(h).to.include('MANAGER_PERMISSIONS_CHANGED'); pm.expect(h).to.include('EMPLOYEE_PROMOTED'); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Owner rejects an owner-only key",
+     "request": {
+      "method": "PATCH",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/employees/{{employeeObjectId}}/permissions",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "employees",
+        "{{employeeObjectId}}",
+        "permissions"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"permissionOverrides\": {\n    \"allow\": [\n      \"employees.managePermissions\"\n    ],\n    \"deny\": []\n  }\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 400', () => pm.response.to.have.status(400));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Owner demotes the manager",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{ownerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/employees/{{employeeObjectId}}/demote-manager",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "employees",
+        "{{employeeObjectId}}",
+        "demote-manager"
+       ]
+      },
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"reason\": \"Back to sales\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 200', () => pm.response.to.have.status(200));",
+         "pm.test('employee again, overrides cleared', () => { const b = pm.response.json(); pm.expect(b.employee.accessRole).to.eql('employee'); pm.expect(b.permissions.overrides.allow).to.eql([]); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Demoted manager no longer sees the team",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       },
+       {
+        "key": "Authorization",
+        "value": "Bearer {{managerToken}}"
+       }
+      ],
+      "url": {
+       "raw": "{{baseUrl}}/employees",
+       "host": [
+        "{{baseUrl}}"
+       ],
+       "path": [
+        "employees"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 403', () => pm.response.to.have.status(403));"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,14 @@
+node_modules/
+dist/
+out-tsc/
+.env
+.env.*
+!.env.example
+.angular/
+coverage/
+playwright-report/
+test-results/
+*.log
+.claude/settings.local.json
+.DS_Store
+Thumbs.db
